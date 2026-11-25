@@ -357,6 +357,7 @@ function vcard(sc,v){
   var lab=function(){return String(ix()+1).padStart(2,'0')+' · '+(v.title||'Video')+(v.o==='h'?' · horizontal':'')};
   var sm=h('summary',{},lab());
   var mv=function(d){if(!moveV(sc.videos,v,d)){toast(d<0?'Esta tarjeta ya está al inicio de la sección.':'Esta tarjeta ya está al final de la sección.');return}mark();flush();opn.add(v);body();focusSec(sel(),true);var e=vEl.get(v);if(e)e.scrollIntoView({block:'nearest',behavior:'smooth'})};
+  var moveTo=function(to){if(!to||to===sc)return;sc.videos.splice(ix(),1);pack(sc.videos);to.videos.push(v);pack(to.videos);mark();flush();opn.add(v);clS.delete(to);body();focusSec('[data-v="'+S.sections.indexOf(to)+'-'+to.videos.indexOf(v)+'"]',true);var e=vEl.get(v);if(e)e.scrollIntoView({block:'center'});toast('Solo esta tarjeta se movió a "'+(to.title||'Sección')+'".')};
   var fs=h('select',{},h('option',{value:'v'},'Vertical (9:16)'),h('option',{value:'h'},'Horizontal (16:9)'));fs.value=v.o==='h'?'h':'v';
   fs.onchange=function(){v.o=fs.value;pack(sc.videos);mark();flush();opn.add(v);body();focusSec(sel(),true);var e=vEl.get(v);if(e)e.scrollIntoView({block:'nearest'})};fs.onfocus=function(){focusSec(sel())};
   var dt=h('details',{class:'box vb',open:opn.has(v)?'':null},sm,h('div',{class:'vin'},
@@ -367,13 +368,13 @@ function vcard(sc,v){
     h('label',{class:'f'},'Formato de la tarjeta',fs),
     (function(){if(S.sections.length<2)return null;var ms=h('select',{}),fill=function(){ms.replaceChildren.apply(ms,S.sections.map(function(x,k){return h('option',{value:String(k)},x.title||'Sección '+(k+1))}));ms.value=String(six())};fill();
       ms.onfocus=function(){fill();focusSec(sel())};
-      ms.onchange=function(){var to=S.sections[+ms.value];if(!to||to===sc)return;sc.videos.splice(ix(),1);pack(sc.videos);to.videos.push(v);pack(to.videos);mark();flush();opn.add(v);clS.delete(to);body();focusSec('[data-v="'+S.sections.indexOf(to)+'-'+to.videos.indexOf(v)+'"]',true);var e=vEl.get(v);if(e)e.scrollIntoView({block:'center'});toast('Tarjeta movida a "'+(to.title||'Sección')+'".')};
-      return h('label',{class:'f'},'Sección donde se muestra',ms)})(),
+      ms.onchange=function(){moveTo(S.sections[+ms.value])};
+      return h('label',{class:'f'},'Mover solo esta tarjeta a otra sección',ms)})(),
     area('Descripción (solo se ve en la ventana del video)',function(){return v.desc},function(x){v.desc=x},4,function(){focusSec(sel())}),
     (function(){var i2=h('input',{type:'url',value:v.url||'',placeholder:'https://…'});i2.oninput=function(){v.url=i2.value.trim();mark()};i2.onfocus=function(){focusSec(sel())};return h('label',{class:'f'},'Link del video (YouTube, Vimeo o archivo .mp4)',i2)})(),
     h('p',{class:'hint'},'El video de la tarjeta se reproduce solo, en loop y sin sonido, a partir de este link.'),
     h('div',{class:'cg'},[['c1','Color 1 (fondo mientras carga)'],['c2','Color 2']].map(function(k){var c=h('input',{type:'color',value:okc(v[k[0]])?v[k[0]]:'#999999'});c.oninput=function(){v[k[0]]=c.value;mark()};return h('label',{class:'f'},k[1],c)})),
-    h('div',{class:'row'},h('button',{class:'b s',onclick:function(){mv(-1)}},'↑ Subir'),h('button',{class:'b s',onclick:function(){mv(1)}},'↓ Bajar'),h('button',{class:'b s',onclick:async function(){var r=await ask({title:'¿Eliminar este video?',text:'Se quitará "'+(v.title||'Video')+'" de esta sección. Si ya publicaste, deberás guardar de nuevo para que el cambio se vea en la página.',btns:[['Cancelar','cancel'],['Eliminar','ok','p']]});if(r==='ok'){sc.videos.splice(ix(),1);pack(sc.videos);mark();flush();body();focusSec('[data-s="'+six()+'"]',true)}}},'Eliminar'))));
+    h('div',{class:'row'},h('button',{class:'b s',onclick:function(){mv(-1)}},'↑ Subir'),h('button',{class:'b s',onclick:function(){mv(1)}},'↓ Bajar'),six()>0?h('button',{class:'b s',title:'Mueve solo esta tarjeta',onclick:function(){moveTo(S.sections[six()-1])}},'← A la sección anterior'):null,six()<S.sections.length-1?h('button',{class:'b s',title:'Mueve solo esta tarjeta',onclick:function(){moveTo(S.sections[six()+1])}},'A la sección siguiente →'):null,h('button',{class:'b s',onclick:async function(){var r=await ask({title:'¿Eliminar este video?',text:'Se quitará "'+(v.title||'Video')+'" de esta sección. Si ya publicaste, deberás guardar de nuevo para que el cambio se vea en la página.',btns:[['Cancelar','cancel'],['Eliminar','ok','p']]});if(r==='ok'){sc.videos.splice(ix(),1);pack(sc.videos);mark();flush();body();focusSec('[data-s="'+six()+'"]',true)}}},'Eliminar'))));
   vEl.set(v,dt);
   dt.ontoggle=function(){if(dt.open)opn.add(v);else opn.delete(v)};
   sm.onclick=function(){setTimeout(function(){if(dt.open)focusSec(sel(),true)},0)};
@@ -392,7 +393,7 @@ function scard(sc){
     fld('Título de la sección',sc.title,function(x){sc.title=x;setL()},wsel),
     h('div',{class:'vls'},sc.videos.length?sc.videos.map(function(v){return vcard(sc,v)}):h('p',{class:'hint'},'Esta sección aún no tiene tarjetas. Agrega la primera con los botones de abajo.')),
     h('div',{class:'row'},h('button',{class:'b p',onclick:function(){addV(sc,'v')}},'+ Video vertical'),h('button',{class:'b p',onclick:function(){addV(sc,'h')}},'+ Video horizontal')),
-    h('div',{class:'row sf'},h('button',{class:'b s',onclick:function(){mvS(-1)}},'↑ Subir sección'),h('button',{class:'b s',onclick:function(){mvS(1)}},'↓ Bajar sección'),h('button',{class:'b s',onclick:delS},'Eliminar sección'))));
+    h('div',{class:'row sf'},h('button',{class:'b s',onclick:function(){mvS(-1)}},'↑ Subir sección completa'),h('button',{class:'b s',onclick:function(){mvS(1)}},'↓ Bajar sección completa'),h('button',{class:'b s',onclick:delS},'Eliminar sección')),h('p',{class:'hint'},'Estos botones mueven la sección entera con todos sus videos. Para mover una sola tarjeta, ábrela y usa «A la sección anterior», «A la sección siguiente» o el selector.')));
   dt.ontoggle=function(){if(dt.open)clS.delete(sc);else clS.add(sc)};
   sm.onclick=function(){setTimeout(function(){if(dt.open)focusSec(ssel(),true)},0)};
   secEl.set(sc,dt);return dt}
