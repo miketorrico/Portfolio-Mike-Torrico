@@ -124,7 +124,7 @@ body.adm{overflow-x:hidden}
 <script type="application/json" id="state">{"colors":{"bg":"#121110","ink":"#f4f0e8","ac":"#ff6a4d","cd":"#1d1b19"},"text":{"top1":"Editor de video","top2":"Disponible para proyectos","name":"Mike Torrico","role":"Editor de video","tagline":"Edición, ritmo y narrativa para marcas y creadores.","scroll":"Ver trabajos ↓","workTitle":"Trabajos seleccionados","contactLead":"¿Trabajamos juntos?","contactBtn":"Hablemos →","email":"tucorreo@ejemplo.com","footer":"© 2026 Mike Torrico"},"videos":[{"title":"Título del video","cat":"Reel · 2026","url":"","cover":"","c1":"#ff4d2e","c2":"#ffb199"},{"title":"Título del video","cat":"Publicidad · 2026","url":"","cover":"","c1":"#2b59ff","c2":"#9fb4ff"},{"title":"Título del video","cat":"Redes · 2026","url":"","cover":"","c1":"#12a37f","c2":"#9be3cf"},{"title":"Título del video","cat":"Videoclip · 2025","url":"","cover":"","c1":"#f2b705","c2":"#ffe38a"},{"title":"Título del video","cat":"Documental · 2025","url":"","cover":"","c1":"#8a3ffc","c2":"#d0b0ff"},{"title":"Título del video","cat":"Reel · 2025","url":"","cover":"","c1":"#e5367a","c2":"#ffb0cf"}]}</script>
 <script>
 (function(){
-var HU='8e5efced94de8c3d7deaa4e03f32bdd4c185577e82e192bc97e45db5008768ff',HP='9b44a2245bdd2c6a89c4e05e8c03310835014b7f8fb3a4220a81d0027e4c793c';
+var SB='https://kxulggqfhzubaepvnnpz.supabase.co',SK='sb_publishable_ASGM7teo5QNNRbgV7pDY4g_bUgoDiPY';
 var S0=document.getElementById('state').textContent,S=JSON.parse(S0),dirty=false,tab='c',pubBtn,app=document.getElementById('app');
 var h=function(t,a){var e=document.createElement(t);a=a||{};for(var k in a){var v=a[k];if(k==='class')e.className=v;else if(k==='style')e.style.cssText=v;else if(k.slice(0,2)==='on')e[k]=v;else if(v!=null)e.setAttribute(k,v)}for(var i=2;i<arguments.length;i++){[].concat(arguments[i]).forEach(function(c){if(c!=null&&c!==false)e.append(c)})}return e};
 var use=function(n){return window.claude&&claude.use?claude.use(n).catch(function(){return null}):Promise.resolve(null)};
@@ -228,18 +228,22 @@ function focusSec(sel,force){
   scrollTo({top:Math.max(0,y),behavior:'smooth'})}
 function fit(){var on=document.body.classList.contains('adm')&&innerWidth>820;document.documentElement.style.setProperty('--vw',on?((innerWidth-Math.min(580,innerWidth))/100)+'px':'1vw')}
 addEventListener('resize',fit);
-var tt;function toast(m,bad){var t=document.getElementById('tst');clearTimeout(tt);t.replaceChildren(h('div',{class:'tt'+(bad?' bad':''),role:'status'},h('i'),m));tt=setTimeout(function(){t.replaceChildren()},3400)}
+var tt;function toast(m,bad,ms){var t=document.getElementById('tst');clearTimeout(tt);t.replaceChildren(h('div',{class:'tt'+(bad?' bad':''),role:'status'},h('i'),m));tt=setTimeout(function(){t.replaceChildren()},ms||3400)}
 function ask(o){return new Promise(function(res){
   var d=document.getElementById('dlg'),kd=function(e){if(e.key==='Escape'){e.stopPropagation();done('cancel')}},
   done=function(v){d.replaceChildren();document.removeEventListener('keydown',kd,true);res(v)},ov;
   ov=h('div',{class:'cf',onclick:function(e){if(e.target===ov)done('cancel')}},h('div',{class:'cfc',role:'alertdialog','aria-modal':'true'},h('h4',{},o.title),h('p',{},o.text),h('div',{class:'cr'},o.btns.map(function(b){return h('button',{class:'cb'+(b[2]?' '+b[2]:''),onclick:function(){done(b[1])}},b[0])}))));
   d.replaceChildren(ov);document.addEventListener('keydown',kd,true);var f=ov.querySelector('.cb.p')||ov.querySelector('.cb');if(f)f.focus()})}
-async function sha(s){var b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('mt1:'+s));return [].map.call(new Uint8Array(b),function(x){return x.toString(16).padStart(2,'0')}).join('')}
+var TK='mt_tok';
+function tokGet(){try{return JSON.parse(sessionStorage.getItem(TK))}catch(e){return null}}
+function tokSet(r){var t={at:r.access_token,rt:r.refresh_token,exp:Date.now()+(r.expires_in||3600)*1000};try{sessionStorage.setItem(TK,JSON.stringify(t))}catch(e){}return t}
+async function auth(q,body){var r=await fetch(SB+'/auth/v1/token?grant_type='+q,{method:'POST',headers:{apikey:SK,'Content-Type':'application/json'},body:JSON.stringify(body)});var j=await r.json().catch(function(){return {}});if(!r.ok)throw j;return j}
+async function tokFresh(){var t=tokGet();if(!t)return null;if(t.exp-Date.now()>60000)return t.at;try{return tokSet(await auth('refresh_token',{refresh_token:t.rt})).at}catch(e){try{sessionStorage.removeItem(TK)}catch(x){}return null}}
 function login(){
-  var u=h('input',{type:'text',placeholder:'Usuario',autocomplete:'username'}),p=h('input',{type:'password',placeholder:'Contraseña',autocomplete:'current-password'}),e=h('div',{class:'err'}),ov;
-  var go=async function(){try{if(await sha(u.value.trim())===HU&&await sha(p.value)===HP){try{sessionStorage.setItem('mt_adm','1')}catch(x){}ov.remove();panel()}else{e.textContent='Usuario o contraseña incorrectos.';p.value=''}}catch(x){e.textContent='No se pudo verificar el acceso.'}};
-  p.onkeydown=function(ev){if(ev.key==='Enter')go()};
-  ov=h('div',{class:'ov'},h('div',{class:'lg'},h('h4',{},'Panel de administrador'),h('label',{class:'f'},'Usuario',u),h('label',{class:'f'},'Contraseña',p),e,h('div',{class:'row'},h('button',{class:'b p',onclick:go},'Entrar'),h('button',{class:'b',onclick:function(){ov.remove()}},'Cancelar'))));
+  var u=h('input',{type:'text',placeholder:'Correo',autocomplete:'username'}),p=h('input',{type:'password',placeholder:'Contraseña',autocomplete:'current-password'}),e=h('div',{class:'err'}),ov,busy=false;
+  var go=async function(){if(busy)return;busy=true;e.textContent='';try{tokSet(await auth('password',{email:u.value.trim(),password:p.value}));try{sessionStorage.setItem('mt_adm','1')}catch(x){}ov.remove();panel()}catch(x){e.textContent=(x&&x.error_code==='invalid_credentials')||(x&&x.msg)?'Correo o contraseña incorrectos.':'No se pudo conectar. Revisa tu internet e intenta de nuevo.';p.value=''}busy=false};
+  p.onkeydown=function(ev){if(ev.key==='Enter')go()};u.onkeydown=p.onkeydown;
+  ov=h('div',{class:'ov'},h('div',{class:'lg'},h('h4',{},'Panel de administrador'),h('label',{class:'f'},'Correo',u),h('label',{class:'f'},'Contraseña',p),e,h('div',{class:'row'},h('button',{class:'b p',onclick:go},'Entrar'),h('button',{class:'b',onclick:function(){ov.remove()}},'Cancelar'))));
   document.getElementById('adm').replaceChildren(ov);u.focus()}
 function fld(l,val,on,sel){var i=h('input',{type:'text',value:val||''});i.oninput=function(){on(i.value);mark()};i.onfocus=function(){focusSec(sel)};return h('label',{class:'f'},l,i)}
 function colors(){
@@ -270,16 +274,18 @@ function videos(){return S.videos.map(vcard).concat(h('button',{class:'b p',oncl
 function body(){var d=document.getElementById('dbody');if(d)d.replaceChildren(h('div',{class:'sec'},tab==='c'?colors():tab==='t'?texts():videos()));document.querySelectorAll('.tabs button').forEach(function(b){b.className=b.dataset.t===tab?'on':''})}
 function goTab(){if(tab==='v')focusSec('[data-sec=works]',true);else if(tab==='t')focusSec('[data-sec=top]',true);else{focusSec(null);scrollTo({top:0,behavior:'smooth'})}}
 function setTab(t){tab=t;body();goTab()}
-var saving=false,sleep=function(ms){return new Promise(function(r){setTimeout(r,ms)})};
+var saving=false;
 async function save(exit){
   if(saving)return;saving=true;if(pubBtn){pubBtn.disabled=true;pubBtn.textContent='Guardando…'}
   var reset=function(){saving=false;if(pubBtn){pubBtn.disabled=false;pubBtn.textContent=dirty?'Guardar y publicar ●':'Guardar y publicar'}};
-  var A=await use('artifact');if(!A){await sleep(800);A=await use('artifact')}
-  if(!A){reset();toast('No se pudo guardar en este momento. Intenta de nuevo.',true);return}
-  var c=document.documentElement.cloneNode(true);c.removeAttribute('style');c.querySelector('body').removeAttribute('class');c.querySelector('#app').replaceChildren();c.querySelector('#state').textContent=JSON.stringify(S).replace(/</g,'\\u003c');
-  try{sessionStorage.setItem('mt_saved','1');if(exit)sessionStorage.removeItem('mt_adm')}catch(x){}
-  try{await A.publish('<!DOCTYPE html>\n'+c.outerHTML);dirty=false;toast('Cambios guardados');reset()}
-  catch(e){try{sessionStorage.removeItem('mt_saved');if(exit)sessionStorage.setItem('mt_adm','1')}catch(x){}reset();toast((e&&e.code==='conflict')?'Se guardó otro cambio al mismo tiempo. La página se actualizará.':'No se pudo guardar. Intenta de nuevo.',true)}}
+  try{
+    var tk=await tokFresh();
+    if(!tk){reset();toast('Tu sesión venció. Entra de nuevo para guardar.',true);closePanel();login();return}
+    var r=await fetch(SB+'/rest/v1/site_content?id=eq.1',{method:'PATCH',headers:{apikey:SK,Authorization:'Bearer '+tk,'Content-Type':'application/json',Prefer:'return=representation'},body:JSON.stringify({data:S,updated_at:new Date().toISOString()})});
+    if(!r.ok)throw 0;var rows=await r.json();
+    if(!rows.length){reset();toast('Esta cuenta no tiene permiso para editar la página.',true);return}
+    dirty=false;S0=JSON.stringify(S);reset();toast('Cambios guardados');if(exit)closePanel()
+  }catch(e){reset();toast('No se pudo guardar. Revisa tu internet e intenta de nuevo.',true)}}
 function closePanel(){try{sessionStorage.removeItem('mt_adm')}catch(x){}document.getElementById('adm').replaceChildren();document.body.classList.remove('adm');focusSec(null);fit()}
 async function leave(){
   if(!dirty){closePanel();return}
@@ -293,6 +299,7 @@ function panel(){
   body();goTab()}
 app.append(h('div',{id:'site'}),h('div',{id:'mdl'}),h('div',{id:'adm'}),h('div',{id:'dlg'}),h('div',{id:'tst'}));
 theme();site();
+(async function(){try{var c=new AbortController(),t=setTimeout(function(){c.abort()},8000),r=await fetch(SB+'/rest/v1/site_content?id=eq.1&select=data',{headers:{apikey:SK},signal:c.signal,cache:'no-store'});clearTimeout(t);if(!r.ok)return;var rows=await r.json(),d=rows[0]&&rows[0].data;if(!d||!d.colors||!d.text||!Array.isArray(d.videos)||dirty)return;S=d;S0=JSON.stringify(S);theme();site();if(document.querySelector('.dr'))body()}catch(e){}})();
 var ok=false;try{ok=sessionStorage.getItem('mt_adm')==='1'}catch(x){}
 if(ok)panel();else if(location.hash==='#admin')login();
 try{if(sessionStorage.getItem('mt_saved')==='1'){sessionStorage.removeItem('mt_saved');toast('Cambios guardados')}}catch(x){}
