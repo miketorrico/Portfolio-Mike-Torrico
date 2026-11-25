@@ -24,17 +24,18 @@ h2.role{font-size:min(calc(var(--vw)*12),16vh);color:var(--ac)}
 .wh{display:flex;justify-content:space-between;align-items:baseline;border-top:2px solid var(--ink);padding-top:14px;margin-bottom:clamp(22px,calc(var(--vw)*4),50px)}
 .wh h3{margin:0;font-family:Anton,Impact,sans-serif;font-weight:400;font-size:clamp(30px,calc(var(--vw)*5),64px)}
 .wh span{color:var(--mu);font-weight:800}
-.grid{--g:clamp(12px,calc(var(--vw)*2),26px);display:grid;gap:var(--g);padding-inline:clamp(14px,calc(var(--vw)*3.5),64px);grid-template-columns:repeat(var(--cols,2),minmax(0,1fr));grid-auto-flow:row dense}
+.grid{--g:clamp(12px,calc(var(--vw)*2),26px);display:grid;gap:var(--g);padding-inline:clamp(14px,calc(var(--vw)*3.5),64px);grid-template-columns:repeat(var(--cols,4),minmax(0,1fr));grid-auto-flow:row dense}
 .ct{margin:0 clamp(24px,calc(var(--vw)*6),110px);border-top:2px solid var(--ink);padding:clamp(40px,calc(var(--vw)*8),110px) 0 28px;text-align:center}
 .ct p{margin:0 0 10px;color:var(--mu)}
 .ct a{font-family:Anton,Impact,sans-serif;font-size:clamp(34px,calc(var(--vw)*9),120px);color:var(--ink);text-decoration:none;border-bottom:5px solid var(--ac)}
 .ct small{display:block;margin-top:44px;color:var(--mu)}
 .f textarea{padding:9px 10px;border:1px solid #ccc;border-radius:8px;background:#fff;color:#111;resize:vertical;font:inherit;font-weight:400}
-@container (width>=0px){.grid{--hs:2}}
-@container (min-width:520px){.grid{--cols:3;--hs:3}}
-@container (min-width:760px){.grid{--cols:4;--hs:3}}
-@container (min-width:1000px){.grid{--cols:5;--hs:3}}
-.card.h{grid-column:span var(--hs);aspect-ratio:16/9;align-self:stretch;justify-self:stretch;width:100%;min-width:0}
+@container (width>=0px){.grid{--cols:4;--hs:4}}
+@container (min-width:520px){.grid{--cols:6;--hs:3}}
+@container (min-width:760px){.grid{--cols:8;--hs:4}}
+@container (min-width:1000px){.grid{--cols:10;--hs:5}}
+.card:not(.h){grid-column:span 2}
+.card.h{grid-column:span var(--hs,4);aspect-ratio:16/9;align-self:stretch;justify-self:stretch;width:100%;min-width:0}
 .card.h iframe.pv{inset:0;left:0;width:100%;height:100%;transform:none;aspect-ratio:auto}
 .card{position:relative;aspect-ratio:9/16;border-radius:20px;overflow:hidden;background:var(--cd);isolation:isolate;box-shadow:0 12px 30px #0002;transition:transform .35s;cursor:pointer}
 .card:hover{transform:translateY(-5px)}
