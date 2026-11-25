@@ -1,10 +1,9 @@
 <!DOCTYPE html>
-<html lang="es">
-<head>
+<html lang="es" data-theme="dark"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Mike Torrico — Editor de video</title>
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Bricolage+Grotesque:wght@400;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anton&amp;family=Bricolage+Grotesque:wght@400;700;800&amp;display=swap" rel="stylesheet">
 <style>
 :root{--bg:#f4f0e8;--ink:#141414;--ac:#ff4d2e;--cd:#e9e3d6;--mu:color-mix(in srgb,var(--ink) 55%,transparent);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 html{scroll-behavior:smooth;scroll-padding-top:env(safe-area-inset-top,0px)}
@@ -46,8 +45,26 @@ h2.role{font-size:min(11.5vw,13vh);color:var(--ac)}
 .ct p{margin:0 0 10px;color:var(--mu)}
 .ct a{font-family:Anton,Impact,sans-serif;text-transform:uppercase;font-size:clamp(34px,9vw,120px);color:var(--ink);text-decoration:none;border-bottom:5px solid var(--ac)}
 .ct small{display:block;margin-top:44px;color:var(--mu)}
-.lock{position:fixed;right:max(14px,env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));width:44px;height:44px;border-radius:50%;border:0;background:var(--ink);color:var(--bg);cursor:pointer;opacity:.5;z-index:50}
-.lock:hover{opacity:1}
+.card{cursor:pointer}
+.num,.ext{transition:opacity .35s}
+.card.idle{cursor:none}
+.card.idle .play,.card.idle .num,.card.idle .ext{opacity:0;pointer-events:none}
+.mo{position:fixed;inset:0;z-index:80;display:flex;overflow:auto;background:#000b;backdrop-filter:blur(8px);padding:max(28px,env(safe-area-inset-top,0px)) max(28px,env(safe-area-inset-right,0px)) max(28px,env(safe-area-inset-bottom,0px)) max(28px,env(safe-area-inset-left,0px));animation:mi .25s}
+@keyframes mi{from{opacity:0}}
+.mw{position:relative;margin:auto;display:grid;grid-template-columns:1fr auto;gap:clamp(24px,4vw,56px);align-items:center;width:clamp(320px,62vw,1040px);background:var(--bg);color:var(--ink);border-radius:28px;padding:clamp(24px,3.5vw,48px)}
+.mi{display:flex;flex-direction:column;justify-content:center;gap:18px;min-width:0}
+.mn{font-weight:800;color:var(--ac);letter-spacing:.1em;font-size:13px}
+.mi h3{margin:0;font-family:Anton,Impact,sans-serif;font-weight:400;text-transform:uppercase;font-size:clamp(34px,4.6vw,64px);line-height:.95}
+.mi dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:10px 22px;border-top:1.5px solid var(--ink);padding-top:16px}
+.mi dt{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--mu);font-weight:700}
+.mi dd{margin:0;font-weight:700}
+.md{margin:0;line-height:1.6;color:color-mix(in srgb,var(--ink) 80%,transparent);white-space:pre-wrap}
+.mb{align-self:flex-start;background:var(--ink);color:var(--bg);text-decoration:none;font-weight:800;padding:12px 20px;border-radius:99px}
+.mc{height:min(56svh,560px);aspect-ratio:9/16}
+.mc .card{height:100%;width:100%;aspect-ratio:auto}
+.mx{position:absolute;top:-12px;right:-12px;width:40px;height:40px;border:0;border-radius:50%;background:var(--ink);color:var(--bg);cursor:pointer;z-index:5;font-weight:800}
+@media (max-width:760px){.mw{grid-template-columns:1fr;width:100%}.mc{order:-1;justify-self:center;height:min(54svh,480px)}}
+.f textarea{padding:9px 10px;border:1px solid #ccc;border-radius:8px;background:#fff;color:#111;resize:vertical;font:inherit;font-weight:400}
 /* ADMIN */
 .ov{position:fixed;inset:0;background:#000a;z-index:90;display:grid;place-items:center;padding:16px}
 .lg{background:#fff;color:#111;border-radius:18px;padding:26px;width:min(380px,100%);display:grid;gap:12px}
@@ -71,12 +88,14 @@ h2.role{font-size:min(11.5vw,13vh);color:var(--ac)}
 .row{display:flex;gap:8px;flex-wrap:wrap}
 details.box summary{cursor:pointer;font-weight:800}
 .hint{font-size:12px;color:#777;margin:0}
+.hr{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #ddd;border-radius:10px;background:#fff;font-weight:700;cursor:pointer}
+.hr input{width:18px;height:18px;accent-color:#ff4d2e}
 .st{font-size:13px;min-height:18px}
 </style>
-</head>
+<style>artifact-sync,artifact-local{display:contents}</style></head>
 <body>
 <div id="app"></div>
-<script type="application/json" id="state">{"colors":{"bg":"#f4f0e8","ink":"#141414","ac":"#ff4d2e","cd":"#e9e3d6"},"text":{"top1":"Editor de video","top2":"Disponible para proyectos","name":"Mike Torrico","role":"Editor de video","tagline":"Edición, ritmo y narrativa para marcas y creadores.","scroll":"Ver trabajos ↓","workTitle":"Trabajos seleccionados","contactLead":"¿Trabajamos juntos?","contactBtn":"Hablemos →","email":"tucorreo@ejemplo.com","footer":"© 2026 Mike Torrico"},"videos":[{"title":"Título del video","cat":"Reel · 2026","url":"","cover":"","c1":"#ff4d2e","c2":"#ffb199"},{"title":"Título del video","cat":"Publicidad · 2026","url":"","cover":"","c1":"#2b59ff","c2":"#9fb4ff"},{"title":"Título del video","cat":"Redes · 2026","url":"","cover":"","c1":"#12a37f","c2":"#9be3cf"},{"title":"Título del video","cat":"Videoclip · 2025","url":"","cover":"","c1":"#f2b705","c2":"#ffe38a"},{"title":"Título del video","cat":"Documental · 2025","url":"","cover":"","c1":"#8a3ffc","c2":"#d0b0ff"},{"title":"Título del video","cat":"Reel · 2025","url":"","cover":"","c1":"#e5367a","c2":"#ffb0cf"}]}</script>
+<script type="application/json" id="state">{"colors":{"bg":"#121110","ink":"#f4f0e8","ac":"#ff6a4d","cd":"#1d1b19"},"text":{"top1":"Editor de video","top2":"Disponible para proyectos","name":"Mike Torrico","role":"Editor de video","tagline":"Edición, ritmo y narrativa para marcas y creadores.","scroll":"Ver trabajos ↓","workTitle":"Trabajos seleccionados","contactLead":"¿Trabajamos juntos?","contactBtn":"Hablemos →","email":"tucorreo@ejemplo.com","footer":"© 2026 Mike Torrico"},"videos":[{"title":"Título del video","cat":"Reel · 2026","url":"","cover":"","c1":"#ff4d2e","c2":"#ffb199"},{"title":"Título del video","cat":"Publicidad · 2026","url":"","cover":"","c1":"#2b59ff","c2":"#9fb4ff"},{"title":"Título del video","cat":"Redes · 2026","url":"","cover":"","c1":"#12a37f","c2":"#9be3cf"},{"title":"Título del video","cat":"Videoclip · 2025","url":"","cover":"","c1":"#f2b705","c2":"#ffe38a"},{"title":"Título del video","cat":"Documental · 2025","url":"","cover":"","c1":"#8a3ffc","c2":"#d0b0ff"},{"title":"Título del video","cat":"Reel · 2025","url":"","cover":"","c1":"#e5367a","c2":"#ffb0cf"}]}</script>
 <script>
 (function(){
 var HU='8e5efced94de8c3d7deaa4e03f32bdd4c185577e82e192bc97e45db5008768ff',HP='9b44a2245bdd2c6a89c4e05e8c03310835014b7f8fb3a4220a81d0027e4c793c';
@@ -95,26 +114,41 @@ function play(c,s,b){
   var f=c.querySelector('iframe'),v=c.querySelector('video');
   if(f){f.remove();c.classList.remove('emb');b.textContent='▶';return}
   if(s.k==='i'){stopAll(c);c.prepend(h('iframe',{src:s.u,allow:'autoplay; fullscreen; picture-in-picture',allowfullscreen:'',title:'Video'}));c.classList.add('emb');b.textContent='✕';return}
-  if(!v){v=h('video',{playsinline:'',preload:'metadata',src:s.u});v.onplay=function(){c.classList.add('playing');b.textContent='❚❚'};v.onpause=v.onended=function(){c.classList.remove('playing');b.textContent='▶'};v.onerror=function(){note(c,'No se pudo cargar el video.')};v.onclick=function(){b.click()};c.prepend(v)}
+  if(!v){v=h('video',{playsinline:'',preload:'metadata',src:s.u});v.onplay=function(){c.classList.add('playing');b.textContent='❚❚'};v.onpause=v.onended=function(){c.classList.remove('playing');b.textContent='▶'};v.onerror=function(){note(c,'No se pudo cargar el video.')};v.onclick=function(e){e.stopPropagation();b.click()};c.prepend(v)}
   if(v.paused){stopAll(c);var p=v.play();if(p&&p.catch)p.catch(function(){note(c,'No se pudo reproducir.')})}else v.pause()
 }
-function card(v,i){
+function card(v,i,big){
   var s=src(v.url),b=h('button',{class:'play','aria-label':'Reproducir o pausar'},'▶');
   var c=h('div',{class:'card',style:bg(v)},h('span',{class:'num'},String(i+1).padStart(2,'0')),b,h('div',{class:'meta'},h('b',{},v.title||''),h('small',{},v.cat||'')),/^https:/.test(v.url||'')?h('a',{class:'ext',href:v.url,target:'_blank',rel:'noopener','aria-label':'Abrir en otra pestaña'},'↗'):null);
-  b.onclick=function(){play(c,s,b)};return c}
+  var t;function idle(){if(c.classList.contains('playing')||c.classList.contains('emb'))c.classList.add('idle')}
+  function arm(){clearTimeout(t);t=setTimeout(idle,1000)}
+  c.onmousemove=function(){c.classList.remove('idle');arm()};c.onmouseleave=arm;
+  b.onclick=function(e){e.stopPropagation();play(c,s,b);arm()};
+  if(!big)c.onclick=function(e){if(e.target.closest('a'))return;openM(v,i)};
+  return c}
+function heroList(){var V=S.videos,any=V.some(function(v){return v.hero!==undefined});return (any?V.filter(function(v){return v.hero}):V.slice(0,4)).slice(0,4)}
 function site(){
   var T=S.text,V=S.videos,R=[-8,-3,4,9],Y=['8px','-8px','10px','-4px'],el=document.getElementById('site');
   el.replaceChildren(
     h('header',{class:'hero'},
       h('div',{class:'top'},h('b',{},T.top1),h('span',{},T.top2)),
       h('h1',{},T.name),
-      h('div',{class:'fan'},V.slice(0,4).map(function(v,i){return h('a',{class:'fc',href:'#trabajos','aria-label':v.title,style:bg(v)+';--r:'+R[i]+'deg;--y:'+Y[i]})})),
+      h('div',{class:'fan'},heroList().map(function(v,i,a){return h('a',{class:'fc',href:'#trabajos','aria-label':v.title,style:bg(v)+';--r:'+((i-(a.length-1)/2)*7.5)+'deg;--y:'+(i%2?'-8px':'8px')})})),
       h('h2',{class:'role'},T.role),
       h('div',{class:'bot'},h('p',{},T.tagline),h('a',{href:'#trabajos'},T.scroll))),
-    h('main',{class:'work',id:'trabajos'},h('div',{class:'wh'},h('h3',{},T.workTitle),h('span',{},String(V.length).padStart(2,'0'))),h('div',{class:'grid'},V.map(card))),
-    h('footer',{class:'ct'},h('p',{},T.contactLead),h('a',{href:'mailto:'+T.email},T.contactBtn),h('small',{},T.footer)))
+    h('main',{class:'work',id:'trabajos'},h('div',{class:'wh'},h('h3',{},T.workTitle),h('span',{},String(V.length).padStart(2,'0'))),h('div',{class:'grid'},V.map(function(v,i){return card(v,i)}))),
+    h('footer',{class:'ct'},h('p',{},T.contactLead),h('a',{href:'mailto:'+T.email},T.contactBtn),h('small',{onclick:function(){login()}},T.footer)))
 }
 function mark(){dirty=true;theme();site();if(pubBtn)pubBtn.textContent='Guardar y publicar ●'}
+function ytid(u){var m=(u||'').match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/))([\w-]{11})/);return m?m[1]:null}
+function closeM(){var m=document.getElementById('mdl');if(m)m.replaceChildren()}
+function openM(v,i){
+  stopAll();
+  var rows=[['Categoría',v.cat],['Cliente',v.cli],['Mi rol',v.rol],['Herramientas',v.tools]].filter(function(r){return r[1]});
+  var info=h('div',{class:'mi'},h('span',{class:'mn'},String(i+1).padStart(2,'0')+' / '+String(S.videos.length).padStart(2,'0')),h('h3',{},v.title||''),rows.length?h('dl',{},[].concat.apply([],rows.map(function(r){return [h('dt',{},r[0]),h('dd',{},r[1])]}))):null,v.desc?h('p',{class:'md'},v.desc):null,/^https:/.test(v.url||'')?h('a',{class:'mb',href:v.url,target:'_blank',rel:'noopener'},'Ver video original ↗'):null);
+  var ov=h('div',{class:'mo',onclick:function(e){if(e.target===ov)closeM()}},h('div',{class:'mw',role:'dialog','aria-modal':'true'},h('button',{class:'mx','aria-label':'Cerrar',onclick:closeM},'✕'),info,h('div',{class:'mc'},card(v,i,true))));
+  document.getElementById('mdl').replaceChildren(ov)}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeM()});
 /* ---- ADMIN ---- */
 async function sha(s){var b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('mt1:'+s));return [].map.call(new Uint8Array(b),function(x){return x.toString(16).padStart(2,'0')}).join('')}
 function login(){
@@ -124,6 +158,10 @@ function login(){
   ov=h('div',{class:'ov'},h('div',{class:'lg'},h('h4',{},'Panel de administrador'),h('label',{class:'f'},'Usuario',u),h('label',{class:'f'},'Contraseña',p),e,h('div',{class:'row'},h('button',{class:'b p',onclick:go},'Entrar'),h('button',{class:'b',onclick:function(){ov.remove()}},'Cancelar'))));
   document.getElementById('adm').replaceChildren(ov);u.focus()}
 function fld(l,val,on,type){var i=h('input',{type:type||'text',value:val||''});i.oninput=function(){on(i.value);mark()};return h('label',{class:'f'},l,i)}
+function heroTab(){
+  if(!S.videos.some(function(x){return x.hero!==undefined})){var c0=heroList();S.videos.forEach(function(x){x.hero=c0.indexOf(x)>-1})}
+  var n=h('p',{class:'hint'});var upd=function(){n.textContent='Seleccionadas: '+S.videos.filter(function(x){return x.hero}).length+' de 4. Se muestran en el orden de la lista de videos.'};upd();
+  return [h('div',{class:'box'},h('h5',{},'Tarjetas del hero'),h('p',{class:'hint'},'Elige hasta 4 de tus videos. Usan la misma portada y colores que ya configuraste en cada uno.'),S.videos.map(function(v,i){var cb=h('input',{type:'checkbox'});cb.checked=!!v.hero;cb.onchange=function(){if(cb.checked&&S.videos.filter(function(x){return x.hero}).length>=4){cb.checked=false;alert('El hero admite hasta 4 tarjetas. Quita una primero.');return}v.hero=cb.checked;mark();upd()};return h('label',{class:'hr'},cb,String(i+1).padStart(2,'0')+' · '+(v.title||'Video'))}),n)]}
 function colors(){
   var K=[['bg','Fondo de la página'],['ink','Textos'],['ac','Color de acento'],['cd','Fondo de tarjetas']];
   var pre=function(n,c){return h('button',{class:'b s',onclick:function(){S.colors=c;mark();body()}},n)};
@@ -137,14 +175,15 @@ function vcard(v,i){
   var up=h('button',{class:'b s'},'Subir video'),cv=h('button',{class:'b s'},'Subir portada'),n=S.videos.length;
   var mv=function(d){var j=i+d;if(j<0||j>=n)return;var t=S.videos[i];S.videos[i]=S.videos[j];S.videos[j]=t;mark();body()};
   return h('details',{class:'box',open:i===0?'':null},h('summary',{},String(i+1).padStart(2,'0')+' · '+(v.title||'Video')),
-    fld('Título',v.title,function(x){v.title=x}),fld('Categoría / año',v.cat,function(x){v.cat=x}),
+    fld('Título',v.title,function(x){v.title=x}),fld('Categoría / año',v.cat,function(x){v.cat=x}),fld('Cliente',v.cli,function(x){v.cli=x}),fld('Mi rol (ej. editor, colorista)',v.rol,function(x){v.rol=x}),fld('Herramientas (ej. Premiere, After Effects)',v.tools,function(x){v.tools=x}),
+    h('label',{class:'f'},'Descripción (solo se ve en la ventana del video)',(function(){var t=h('textarea',{rows:'4'});t.value=v.desc||'';t.oninput=function(){v.desc=t.value;mark()};return t})()),
     h('label',{class:'f'},'Link del video (YouTube, Vimeo o archivo .mp4)',(function(){var i2=h('input',{type:'url',value:v.url||'',placeholder:'https://…'});i2.oninput=function(){v.url=i2.value.trim();mark()};return i2})()),
-    h('p',{class:'hint'},'También puedes subir el archivo (máx. 20 MB). Para portada usa una imagen vertical.'),
-    h('div',{class:'row'},up,upl(up,'video/*',function(u){v.url=u}),cv,upl(cv,'image/*',function(u){v.cover=u})),
+    h('p',{class:'hint'},'Puedes subir el archivo (máx. 20 MB). Portada: sube una imagen; si es de YouTube, ábrela con el botón, guárdala y súbela.'),
+    h('div',{class:'row'},up,upl(up,'video/*',function(u){v.url=u}),cv,upl(cv,'image/*',function(u){v.cover=u}),ytid(v.url)?h('a',{class:'b s',href:'https://img.youtube.com/vi/'+ytid(v.url)+'/maxresdefault.jpg',target:'_blank',rel:'noopener',style:'text-decoration:none'},'Ver miniatura de YouTube ↗'):null),
     h('div',{class:'cg'},[['c1','Color 1 (si no hay portada)'],['c2','Color 2']].map(function(k){var c=h('input',{type:'color',value:okc(v[k[0]])?v[k[0]]:'#999999'});c.oninput=function(){v[k[0]]=c.value;mark()};return h('label',{class:'f'},k[1],c)})),
     h('div',{class:'row'},h('button',{class:'b s',onclick:function(){mv(-1)}},'↑ Subir'),h('button',{class:'b s',onclick:function(){mv(1)}},'↓ Bajar'),h('button',{class:'b s',onclick:function(){if(confirm('¿Eliminar este video?')){S.videos.splice(i,1);mark();body()}}},'Eliminar')))}
 function videos(){return S.videos.map(vcard).concat(h('button',{class:'b p',onclick:function(){S.videos.push({title:'Nuevo video',cat:'Categoría · 2026',url:'',cover:'',c1:'#ff4d2e',c2:'#ffb199'});mark();body()}},'+ Agregar video'))}
-function body(){var d=document.getElementById('dbody');if(d)d.replaceChildren(h('div',{class:'sec'},tab==='c'?colors():tab==='t'?texts():videos()));document.querySelectorAll('.tabs button').forEach(function(b){b.className=b.dataset.t===tab?'on':''})}
+function body(){var d=document.getElementById('dbody');if(d)d.replaceChildren(h('div',{class:'sec'},tab==='c'?colors():tab==='t'?texts():tab==='h'?heroTab():videos()));document.querySelectorAll('.tabs button').forEach(function(b){b.className=b.dataset.t===tab?'on':''})}
 async function save(st){
   st.textContent='Guardando…';var A=await use('artifact');
   if(!A){st.textContent='Solo el dueño de la página puede guardar cambios.';return}
@@ -152,14 +191,15 @@ async function save(st){
   try{await A.publish('<!DOCTYPE html>\n'+c.outerHTML);dirty=false;st.textContent='Publicado.'}catch(e){st.textContent=(e&&e.code==='conflict')?'Hubo un cambio simultáneo; se recargará.':'No se pudo guardar: '+((e&&(e.code||e.message))||'error')}}
 function panel(){
   var st=h('div',{class:'st'});pubBtn=h('button',{class:'b p s',onclick:function(){save(st)}},'Guardar y publicar');
-  var T=[['c','1 · Colores'],['t','2 · Textos'],['v','3 · Videos']];
+  var T=[['c','1 · Colores'],['t','2 · Textos'],['v','3 · Videos'],['h','4 · Hero']];
   document.getElementById('adm').replaceChildren(h('aside',{class:'dr'},h('div',{class:'dh'},h('div',{class:'r'},h('b',{},'Administrador'),h('div',{class:'row'},pubBtn,h('button',{class:'b s',onclick:function(){if(!dirty||confirm('Hay cambios sin guardar. ¿Cerrar?')){try{sessionStorage.removeItem('mt_adm')}catch(x){}document.getElementById('adm').replaceChildren()}}},'Salir'))),h('div',{class:'tabs'},T.map(function(t){return h('button',{'data-t':t[0],onclick:function(){tab=t[0];body()}},t[1])})),h('div',{class:'st',style:'color:#ddd;margin-top:6px'},st)),h('div',{id:'dbody'})));
   st.style.color='#ddd';body()}
-app.append(h('div',{id:'site'}),h('div',{id:'adm'}),h('button',{class:'lock','aria-label':'Administrador',onclick:function(){login()}},'🔒'));
+app.append(h('div',{id:'site'}),h('div',{id:'mdl'}),h('div',{id:'adm'}));
 theme();site();
 var ok=false;try{ok=sessionStorage.getItem('mt_adm')==='1'}catch(x){}
 if(ok)panel();else if(location.hash==='#admin')login();
 })();
 </script>
-</body>
-</html>
+
+
+</body></html>
