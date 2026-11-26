@@ -209,12 +209,16 @@ var pvc={};
 var pvf=[];
 function yt(f,fn,a){try{f.contentWindow.postMessage(JSON.stringify({event:'command',func:fn,args:a===undefined?[]:[a]}),'*')}catch(e){}}
 function nocc(f){yt(f,'unloadModule','captions');yt(f,'unloadModule','cc')}
-function hookYT(f){pvf.push(f);f.addEventListener('load',function(){try{f.contentWindow.postMessage(JSON.stringify({event:'listening',id:1,channel:'widget'}),'*')}catch(e){}nocc(f);setTimeout(function(){nocc(f)},700);setTimeout(function(){nocc(f)},2200)})}
+function later(f){setTimeout(function(){nocc(f)},500);setTimeout(function(){nocc(f)},2000)}
+function ytListen(f){f._n=0;var iv=setInterval(function(){if(!f.isConnected||f._ok||++f._n>40){clearInterval(iv);return}try{f.contentWindow.postMessage(JSON.stringify({event:'listening',id:1,channel:'widget'}),'*')}catch(e){}nocc(f)},250)}
+function hookYT(f){pvf.push(f);f.addEventListener('load',function(){ytListen(f)});setTimeout(function(){if(f.isConnected&&!f._ok&&!f._fb){var m=f.src.match(/embed\/([\w-]{11})/);if(m){f._fb=1;f.src=f.src+'&loop=1&playlist='+m[1]}}},9000)}
 window.addEventListener('message',function(e){
   for(var k=pvf.length-1;k>=0;k--){var f=pvf[k];if(!f.isConnected){pvf.splice(k,1);continue}if(f.contentWindow!==e.source)continue;
     var d;try{d=JSON.parse(e.data)}catch(x){return}
+    if(!f._ok){f._ok=true;later(f)}
     if(d.event==='onApiChange'||d.event==='onStateChange')nocc(f);
-    if(d.event==='onStateChange'&&d.info===0)yt(f,'playVideo');
+    var st=d.event==='onStateChange'?d.info:(d.info&&d.info.playerState);
+    if(st===0){var t=Date.now();if(!f._lt||t-f._lt>1000){f._lt=t;yt(f,'seekTo',0);yt(f,'playVideo')}}
     return}});
 var qv=[],pk=false;
 function pumpV(){if(pk)return;pk=true;setTimeout(function run(){var c=qv.shift();if(!c){pk=false;return}if(c.isConnected&&c._vis)c._vis(true);setTimeout(run,350)},700)}
@@ -259,10 +263,10 @@ function card(v,si,vi,big){
   else if(s.k==='i'){
     var vim=s.t==='v',cmd=function(f,a){try{fr.contentWindow.postMessage(JSON.stringify(vim?{method:f,value:a}:{event:'command',func:f,args:a===undefined?[]:[a]}),'*')}catch(e){}};
     fr=h('iframe',{src:s.u,allow:'autoplay; fullscreen; picture-in-picture',allowfullscreen:'',title:v.title||'Video'});
-    fr.onload=function(){try{if(!vim)fr.contentWindow.postMessage(JSON.stringify({event:'listening',id:1,channel:'widget'}),'*')}catch(e){}if(!vim){nocc(fr);setTimeout(function(){nocc(fr)},700);setTimeout(function(){nocc(fr)},2200)}};
+    fr.onload=function(){if(!vim)ytListen(fr)};
     doPlay=function(){cmd(vim?'play':'playVideo');ui(true)};doPause=function(){cmd(vim?'pause':'pauseVideo');ui(false)};
     doMute=function(m){if(vim)cmd('setVolume',m?0:1);else cmd(m?'mute':'unMute')};
-    var onm=function(e){if(vim||!fr||e.source!==fr.contentWindow)return;var d;try{d=JSON.parse(e.data)}catch(x){return}var st=d.event==='onStateChange'?d.info:(d.info&&d.info.playerState);if(d.event==='onApiChange'||d.event==='onStateChange')nocc(fr);if(st===1)ui(true);else if(st===2||st===0)ui(false)};
+    var onm=function(e){if(vim||!fr||e.source!==fr.contentWindow)return;var d;try{d=JSON.parse(e.data)}catch(x){return}if(!fr._ok){fr._ok=true;later(fr)}var st=d.event==='onStateChange'?d.info:(d.info&&d.info.playerState);if(d.event==='onApiChange'||d.event==='onStateChange')nocc(fr);if(st===1)ui(true);else if(st===2||st===0)ui(false)};
     window.addEventListener('message',onm);c._off=function(){window.removeEventListener('message',onm)};
     c.append(fr,vl);ui(true)
   }else{
