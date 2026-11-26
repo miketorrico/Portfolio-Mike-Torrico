@@ -3,6 +3,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Mike Torrico — Editor de video</title>
+<link rel="preconnect" href="https://www.youtube.com">
+<link rel="preconnect" href="https://i.ytimg.com">
 <link href="https://fonts.googleapis.com/css2?family=Anton&amp;family=Bricolage+Grotesque:wght@400;700;800&amp;display=swap" rel="stylesheet">
 <style>
 :root{--vw:1vw;--bg:#f4f0e8;--ink:#141414;--ac:#ff4d2e;--cd:#e9e3d6;--mu:color-mix(in srgb,var(--ink) 55%,transparent);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -39,6 +41,9 @@ h2.role{font-size:min(calc(var(--vw)*12),16vh);color:var(--ac)}
 .card.h iframe.pv{inset:0;left:0;width:100%;height:100%;transform:none;aspect-ratio:auto}
 .card{position:relative;aspect-ratio:9/16;border-radius:20px;overflow:hidden;background:var(--cd);isolation:isolate;box-shadow:0 12px 30px #0002;transition:transform .35s;cursor:pointer}
 .card:hover{transform:translateY(-5px)}
+.card.rv{opacity:0}
+.card.ent{animation:cin .38s cubic-bezier(.2,.8,.2,1) backwards}
+@keyframes cin{from{opacity:0;transform:translateY(20px) scale(.96)}}
 .card .num{position:absolute;top:14px;left:16px;color:#fff;font-weight:800;font-size:14px;mix-blend-mode:difference}
 .ico{position:absolute;top:50%;left:50%;width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:50%;background:#fff;color:#141414;display:grid;place-items:center;font-size:20px;padding-left:3px;transition:transform .25s}
 .card:hover .ico{transform:scale(1.12)}
@@ -198,29 +203,38 @@ function src(u){if(!u)return null;u=u.trim();var m=u.match(/(?:youtu\.be\/|youtu
 function stopAll(){document.querySelectorAll('#mdl .card').forEach(function(c){if(c._stop)c._stop()})}
 function note(c,m){var n=h('div',{class:'note'},m);c.append(n);setTimeout(function(){n.remove()},2800)}
 var io=null;
-function getIO(){if(io||!window.IntersectionObserver)return io;io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.target._vis)e.target._vis(e.isIntersecting)})},{rootMargin:'150px'});return io}
+function getIO(){if(io||!window.IntersectionObserver)return io;io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.target._vis)e.target._vis(e.isIntersecting)})},{rootMargin:'1500px 0px'});return io}
 function prev(u){if(!u)return null;u=u.trim();var m=u.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/))([\w-]{11})/);if(m)return{k:'i',u:'https://www.youtube.com/embed/'+m[1]+'?autoplay=1&mute=1&controls=0&loop=1&playlist='+m[1]+'&playsinline=1&modestbranding=1&rel=0&disablekb=1&iv_load_policy=3&fs=0'};m=u.match(/vimeo\.com\/(?:video\/)?(\d+)/);if(m)return{k:'i',u:'https://player.vimeo.com/video/'+m[1]+'?background=1&autoplay=1&muted=1&loop=1'};return okurl(u)?{k:'v',u:u}:null}
 var pvc={};
+var qv=[],pk=false;
+function pumpV(){if(pk)return;pk=true;setTimeout(function run(){var c=qv.shift();if(!c){pk=false;return}if(c.isConnected&&c._vis)c._vis(true);setTimeout(run,350)},700)}
 function preview(c,v,i){
   var pv=prev(v.url);if(!pv)return;
   c.classList.add('hp');var el=null;
   c._vis=function(on){
+    if(!on&&!el)return;
     if(pv.k==='v'){
       if(!el){var key=i+'|'+pv.u;el=pvc[key];if(!el){el=h('video',{class:'pv','aria-hidden':'true',tabindex:'-1'});el.muted=true;el.loop=true;el.playsInline=true;el.setAttribute('muted','');el.setAttribute('playsinline','');el.preload='auto';el.src=pv.u;pvc[key]=el}c.prepend(el)}
-      if(on){var p=el.play();if(p&&p.catch)p.catch(function(){})}else el.pause()
-    }else{
-      if(on&&!el){el=h('iframe',{class:'pv',src:pv.u,allow:'autoplay',tabindex:'-1','aria-hidden':'true',title:''});c.prepend(el)}
-      else if(!on&&el){el.remove();el=null}
+      if(el.paused){var p=el.play();if(p&&p.catch)p.catch(function(){})}
+    }else if(!el){
+      el=h('iframe',{class:'pv',src:pv.u,allow:'autoplay',tabindex:'-1','aria-hidden':'true',title:''});c.prepend(el)
     }
   };
+  qv.push(c);pumpV();
   var o=getIO();if(o)o.observe(c);else c._vis(true)
+}
+var rvo=null;
+function reveal(c){
+  if(!window.IntersectionObserver||(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches))return;
+  if(!rvo)rvo=new IntersectionObserver(function(es){var k=0;es.forEach(function(e){if(!e.isIntersecting)return;var t=e.target;rvo.unobserve(t);t.style.animationDelay=Math.min(k++,5)*55+'ms';t.classList.remove('rv');t.classList.add('ent');t.addEventListener('animationend',function f(ev){if(ev.target!==t)return;t.classList.remove('ent');t.style.animationDelay='';t.removeEventListener('animationend',f)})})},{threshold:.08,rootMargin:'0px 0px -6% 0px'});
+  c.classList.add('rv');rvo.observe(c)
 }
 function card(v,si,vi,big){
   var s=src(v.url),c=h('div',{class:'card'+(v.o==='h'?' h':'')+(big?' big':''),style:bg(v)});
   if(!big){
     c.append(h('span',{class:'ico'},'▶'),h('div',{class:'meta'},h('b',{},v.title||''),h('small',{},v.cat||'')));
     c.setAttribute('role','button');c.setAttribute('tabindex','0');c.setAttribute('aria-label',v.title||'Ver video');
-    c.setAttribute('data-v',si+'-'+vi);preview(c,v,si+'-'+vi);
+    c.setAttribute('data-v',si+'-'+vi);preview(c,v,si+'-'+vi);reveal(c);
     c.onclick=function(){openM(si,vi)};
     c.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();openM(si,vi)}};
     return c}
@@ -259,7 +273,7 @@ function card(v,si,vi,big){
 function sect(sc,si){
   return h(si===0?'main':'section',{class:'work',id:si===0?'trabajos':'s-'+si,'data-s':si},h('div',{class:'wh'},h('h3',{},sc.title||''),h('span',{},String(sc.videos.length).padStart(2,'0'))),h('div',{class:'grid'},sc.videos.map(function(v,vi){return card(v,si,vi)})))}
 function site(){
-  if(io)io.disconnect();var T=S.text,el=document.getElementById('site');
+  if(io)io.disconnect();if(rvo){rvo.disconnect();rvo=null}var T=S.text,el=document.getElementById('site');
   el.replaceChildren.apply(el,[
     h('header',{class:'hero'},
       h('div',{class:'top','data-sec':'top'},h('b',{},T.top1),h('span',{},T.top2)),
