@@ -204,8 +204,18 @@ function stopAll(){document.querySelectorAll('#mdl .card').forEach(function(c){i
 function note(c,m){var n=h('div',{class:'note'},m);c.append(n);setTimeout(function(){n.remove()},2800)}
 var io=null;
 function getIO(){if(io||!window.IntersectionObserver)return io;io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.target._vis)e.target._vis(e.isIntersecting)})},{rootMargin:'1500px 0px'});return io}
-function prev(u){if(!u)return null;u=u.trim();var m=u.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/))([\w-]{11})/);if(m)return{k:'i',u:'https://www.youtube.com/embed/'+m[1]+'?autoplay=1&mute=1&controls=0&loop=1&playlist='+m[1]+'&playsinline=1&modestbranding=1&rel=0&disablekb=1&iv_load_policy=3&fs=0'};m=u.match(/vimeo\.com\/(?:video\/)?(\d+)/);if(m)return{k:'i',u:'https://player.vimeo.com/video/'+m[1]+'?background=1&autoplay=1&muted=1&loop=1'};return okurl(u)?{k:'v',u:u}:null}
+function prev(u){if(!u)return null;u=u.trim();var m=u.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/))([\w-]{11})/);if(m)return{k:'i',u:'https://www.youtube.com/embed/'+m[1]+'?autoplay=1&mute=1&controls=0&enablejsapi=1&playsinline=1&modestbranding=1&rel=0&disablekb=1&iv_load_policy=3&fs=0'};m=u.match(/vimeo\.com\/(?:video\/)?(\d+)/);if(m)return{k:'i',u:'https://player.vimeo.com/video/'+m[1]+'?background=1&autoplay=1&muted=1&loop=1'};return okurl(u)?{k:'v',u:u}:null}
 var pvc={};
+var pvf=[];
+function yt(f,fn,a){try{f.contentWindow.postMessage(JSON.stringify({event:'command',func:fn,args:a===undefined?[]:[a]}),'*')}catch(e){}}
+function nocc(f){yt(f,'unloadModule','captions');yt(f,'unloadModule','cc')}
+function hookYT(f){pvf.push(f);f.addEventListener('load',function(){try{f.contentWindow.postMessage(JSON.stringify({event:'listening',id:1,channel:'widget'}),'*')}catch(e){}nocc(f);setTimeout(function(){nocc(f)},700);setTimeout(function(){nocc(f)},2200)})}
+window.addEventListener('message',function(e){
+  for(var k=pvf.length-1;k>=0;k--){var f=pvf[k];if(!f.isConnected){pvf.splice(k,1);continue}if(f.contentWindow!==e.source)continue;
+    var d;try{d=JSON.parse(e.data)}catch(x){return}
+    if(d.event==='onApiChange'||d.event==='onStateChange')nocc(f);
+    if(d.event==='onStateChange'&&d.info===0)yt(f,'playVideo');
+    return}});
 var qv=[],pk=false;
 function pumpV(){if(pk)return;pk=true;setTimeout(function run(){var c=qv.shift();if(!c){pk=false;return}if(c.isConnected&&c._vis)c._vis(true);setTimeout(run,350)},700)}
 function preview(c,v,i){
@@ -217,7 +227,7 @@ function preview(c,v,i){
       if(!el){var key=i+'|'+pv.u;el=pvc[key];if(!el){el=h('video',{class:'pv','aria-hidden':'true',tabindex:'-1'});el.muted=true;el.loop=true;el.playsInline=true;el.setAttribute('muted','');el.setAttribute('playsinline','');el.preload='auto';el.src=pv.u;pvc[key]=el}c.prepend(el)}
       if(el.paused){var p=el.play();if(p&&p.catch)p.catch(function(){})}
     }else if(!el){
-      el=h('iframe',{class:'pv',src:pv.u,allow:'autoplay',tabindex:'-1','aria-hidden':'true',title:''});c.prepend(el)
+      el=h('iframe',{class:'pv',src:pv.u,allow:'autoplay',tabindex:'-1','aria-hidden':'true',title:''});c.prepend(el);if(pv.u.indexOf('youtube.com')>-1)hookYT(el)
     }
   };
   qv.push(c);pumpV();
@@ -249,10 +259,10 @@ function card(v,si,vi,big){
   else if(s.k==='i'){
     var vim=s.t==='v',cmd=function(f,a){try{fr.contentWindow.postMessage(JSON.stringify(vim?{method:f,value:a}:{event:'command',func:f,args:a===undefined?[]:[a]}),'*')}catch(e){}};
     fr=h('iframe',{src:s.u,allow:'autoplay; fullscreen; picture-in-picture',allowfullscreen:'',title:v.title||'Video'});
-    fr.onload=function(){try{if(!vim)fr.contentWindow.postMessage(JSON.stringify({event:'listening',id:1,channel:'widget'}),'*')}catch(e){}};
+    fr.onload=function(){try{if(!vim)fr.contentWindow.postMessage(JSON.stringify({event:'listening',id:1,channel:'widget'}),'*')}catch(e){}if(!vim){nocc(fr);setTimeout(function(){nocc(fr)},700);setTimeout(function(){nocc(fr)},2200)}};
     doPlay=function(){cmd(vim?'play':'playVideo');ui(true)};doPause=function(){cmd(vim?'pause':'pauseVideo');ui(false)};
     doMute=function(m){if(vim)cmd('setVolume',m?0:1);else cmd(m?'mute':'unMute')};
-    var onm=function(e){if(vim||!fr||e.source!==fr.contentWindow)return;var d;try{d=JSON.parse(e.data)}catch(x){return}var st=d.event==='onStateChange'?d.info:(d.info&&d.info.playerState);if(st===1)ui(true);else if(st===2||st===0)ui(false)};
+    var onm=function(e){if(vim||!fr||e.source!==fr.contentWindow)return;var d;try{d=JSON.parse(e.data)}catch(x){return}var st=d.event==='onStateChange'?d.info:(d.info&&d.info.playerState);if(d.event==='onApiChange'||d.event==='onStateChange')nocc(fr);if(st===1)ui(true);else if(st===2||st===0)ui(false)};
     window.addEventListener('message',onm);c._off=function(){window.removeEventListener('message',onm)};
     c.append(fr,vl);ui(true)
   }else{
