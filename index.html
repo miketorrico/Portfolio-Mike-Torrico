@@ -60,6 +60,8 @@ iframe.pv{inset:auto;top:0;left:50%;width:auto;aspect-ratio:16/9;transform:trans
 .ctl{position:absolute;left:0;right:0;bottom:0;z-index:4;display:flex;align-items:center;gap:10px;padding:36px 14px 14px;background:linear-gradient(transparent,#000b);transition:opacity .1s}
 .ctl button{width:42px;height:42px;border:0;border-radius:50%;background:#fff;color:#141414;cursor:pointer;display:grid;place-items:center;font-size:16px;padding:0}
 .ctl .sp{flex:1}
+.ctl button.off{opacity:.55}
+.ctl button[aria-label="Subtítulos"]{font-size:13px;font-weight:800}
 .big.idle{cursor:none}
 .big.idle .ctl{opacity:0;pointer-events:none;transition:none}
 .big:fullscreen{border-radius:0;aspect-ratio:auto}
@@ -208,7 +210,8 @@ function prev(u){if(!u)return null;u=u.trim();var m=u.match(/(?:youtu\.be\/|yout
 var pvc={};
 var pvf=[];
 function yt(f,fn,a){try{f.contentWindow.postMessage(JSON.stringify({event:'command',func:fn,args:a===undefined?[]:[a]}),'*')}catch(e){}}
-function nocc(f){yt(f,'unloadModule','captions');yt(f,'unloadModule','cc')}
+function ytA(f,fn,arr){try{f.contentWindow.postMessage(JSON.stringify({event:'command',func:fn,args:arr}),'*')}catch(e){}}
+function nocc(f){if(f._cc)return;ytA(f,'setOption',['captions','track',{}]);ytA(f,'unloadModule',['captions']);ytA(f,'unloadModule',['cc'])}
 function later(f){setTimeout(function(){nocc(f)},500);setTimeout(function(){nocc(f)},2000)}
 function ytListen(f){f._n=0;var iv=setInterval(function(){if(!f.isConnected||f._ok||++f._n>40){clearInterval(iv);return}try{f.contentWindow.postMessage(JSON.stringify({event:'listening',id:1,channel:'widget'}),'*')}catch(e){}nocc(f)},250)}
 function hookYT(f){pvf.push(f);f.addEventListener('load',function(){ytListen(f)});setTimeout(function(){if(f.isConnected&&!f._ok&&!f._fb){var m=f.src.match(/embed\/([\w-]{11})/);if(m){f._fb=1;f.src=f.src+'&loop=1&playlist='+m[1]}}},9000)}
@@ -253,8 +256,8 @@ function card(v,si,vi,big){
     c.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();openM(si,vi)}};
     return c}
   var playing=false,muted=false,fr=null,vd=null,t,
-  pb=h('button',{'aria-label':'Reproducir o pausar'},'▶'),mb=h('button',{'aria-label':'Silenciar'},'🔊'),fb=h('button',{'aria-label':'Pantalla completa'},'⛶'),
-  vl=h('div',{class:'vl'}),T=matchMedia('(hover:none)').matches?2500:150;
+  pb=h('button',{'aria-label':'Reproducir o pausar'},'▶'),mb=h('button',{'aria-label':'Silenciar'},'🔊'),fb=h('button',{'aria-label':'Pantalla completa'},'⛶'),cb=h('button',{'aria-label':'Subtítulos',class:'off'},'CC'),
+  vl=h('div',{class:'vl'}),T=matchMedia('(hover:none)').matches?2500:80;
   function idle(){if(playing)c.classList.add('idle')}
   function arm(){clearTimeout(t);t=setTimeout(idle,T)}
   function ui(p){playing=p;pb.textContent=p?'❚❚':'▶';if(p)arm();else{clearTimeout(t);c.classList.remove('idle')}}
@@ -278,8 +281,9 @@ function card(v,si,vi,big){
   var tog=function(){if(!s)return;playing?doPause():doPlay()};
   vl.onclick=tog;pb.onclick=tog;
   mb.onclick=function(){muted=!muted;doMute(muted);mb.textContent=muted?'🔇':'🔊'};
+  cb.onclick=function(){if(!fr)return;fr._cc=!fr._cc;if(fr._cc){ytA(fr,'loadModule',['captions']);ytA(fr,'setOption',['captions','track',{languageCode:(document.documentElement.lang||'es').slice(0,2)}])}else{nocc(fr)}cb.classList.toggle('off',!fr._cc)};
   fb.onclick=function(){var d=document;if(d.fullscreenElement||d.webkitFullscreenElement){(d.exitFullscreen||d.webkitExitFullscreen).call(d)}else if(c.requestFullscreen)c.requestFullscreen();else if(c.webkitRequestFullscreen)c.webkitRequestFullscreen();else if(vd&&vd.webkitEnterFullscreen)vd.webkitEnterFullscreen()};
-  c.append(h('div',{class:'ctl'},pb,mb,h('span',{class:'sp'}),fb));
+  c.append(h('div',{class:'ctl'},pb,mb,(s&&s.k==='i'&&s.t==='y')?cb:null,h('span',{class:'sp'}),fb));
   c.onmousemove=c.onpointerdown=function(){c.classList.remove('idle');if(playing)arm()};
   c.onmouseleave=function(){clearTimeout(t);if(playing)c.classList.add('idle')};
   c._stop=function(){clearTimeout(t);if(vd)vd.pause();if(c._off)c._off();var f=c.querySelector('iframe');if(f)f.remove()};
